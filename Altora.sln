@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32328.378
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altora", "Altora\Altora.csproj", "{FBCAF3C7-0211-4C8C-8D13-F19F46964662}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FBCAF3C7-0211-4C8C-8D13-F19F46964662}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBCAF3C7-0211-4C8C-8D13-F19F46964662}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FBCAF3C7-0211-4C8C-8D13-F19F46964662}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FBCAF3C7-0211-4C8C-8D13-F19F46964662}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5BC18EAD-7650-4FFE-8336-403734F23B65}
+	EndGlobalSection
+EndGlobal
