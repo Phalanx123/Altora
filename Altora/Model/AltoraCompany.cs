@@ -23,6 +23,5 @@ namespace Altora.Model
         /// Active
         /// </summary>
         public int Active { get; set; }
-
     }
 }
