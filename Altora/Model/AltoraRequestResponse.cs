@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Altora.Model
+﻿namespace Altora.Model
 {
     /// <summary>
     /// Responses from Put operations
@@ -14,7 +8,7 @@ namespace Altora.Model
         /// <summary>
         /// Either success or error
         /// </summary>
-        public string? Status { get; set;}
+        public string? Status { get; set; }
         /// <summary>
         /// Message response
         /// </summary>

@@ -1,15 +1,8 @@
-﻿using RestSharp;
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using RestSharp.Authenticators;
-using System.Net.Http;
-using System.Text.Json.Serialization;
-using Altora.Model;
+﻿using Altora.Model;
+using RestSharp;
 using RestSharp.Serializers.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Altora
 {
@@ -28,7 +21,7 @@ namespace Altora
             ClientID = clientID;
             Client = new RestClient(@$"https://api.userlogin.com.au/v1/{ClientID}/");
             Client.AddDefaultHeaders(new Dictionary<string, string> { { "x-api-key", ApiKey }, { "x-api-secret", ApiSecret } });
-            Client.UseSystemTextJson(new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault, NumberHandling= JsonNumberHandling.AllowReadingFromString });
+            Client.UseSystemTextJson(new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault, NumberHandling = JsonNumberHandling.AllowReadingFromString });
         }
 
         /// <summary>
@@ -143,7 +136,7 @@ namespace Altora
         public async Task<IEnumerable<AltoraWorker>> GetWorkersAsync(string? firstname = null, string? lastname = null, string? email = null)
         {
             var request = new RestRequest("/users", Method.Get);
-            if(firstname!=null)
+            if (firstname != null)
                 request.AddQueryParameter(nameof(firstname), firstname);
             if (lastname != null)
                 request.AddQueryParameter(nameof(lastname), lastname);
@@ -355,7 +348,7 @@ namespace Altora
         {
             var request = new RestRequest($"/users/", Method.Post);
             request.AddJsonBody(worker);
-            
+
             var json = JsonSerializer.Serialize(worker);
             var result = await Client.ExecuteAsync<AltoraAddWorkerResponse>(request);
             if (result.IsSuccessful && result.Data != null)

@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
+﻿using System.Text.Json.Serialization;
 
 namespace Altora.Model
 {
     [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
-    
+
     public class AltoraWorker
     {
         public int? Id { get; set; }
@@ -26,7 +21,7 @@ namespace Altora.Model
         public string? Active { get; set; }
         public string? Username { get; set; }
         public int? CompanyId { get; set; }
-       
+
         [JsonPropertyName("Custom_Fields")]
         public Dictionary<string, string>? CustomFields { get; set; }
         public AltoraCompany? AltoraCompany { get; set; }
@@ -51,6 +46,6 @@ namespace Altora.Model
         [JsonPropertyName("password")]
         public string? Password { get; set; }
 
-        
+
     }
 }

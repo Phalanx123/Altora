@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
+﻿using System.Text.Json.Serialization;
 
 namespace Altora.Model
 {
     /// <summary>
     /// Altora Forms
     /// </summary>
-   public class AltoraForm
+    public class AltoraForm
     {
         /// <summary>
         /// Form ID

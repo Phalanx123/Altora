@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
+﻿using System.Text.Json.Serialization;
 
 namespace Altora.Model
 {
@@ -16,7 +11,7 @@ namespace Altora.Model
         /// Course ID
         /// </summary>
         [JsonPropertyName("Course_Id")]
-        public string? CourseId{ get; set; }
+        public string? CourseId { get; set; }
         /// <summary>
         /// Course Name
         /// </summary>
