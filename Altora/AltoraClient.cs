@@ -21,8 +21,7 @@ namespace Altora
             ClientID = clientID;
             Client = new RestClient(@$"https://api.userlogin.com.au/v1/{ClientID}/");
             Client.AddDefaultHeaders(new Dictionary<string, string> { { "x-api-key", ApiKey }, { "x-api-secret", ApiSecret } });
-            Client.UseSystemTextJson(new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault, NumberHandling = JsonNumberHandling.AllowReadingFromString });
-        }
+                  }
 
         /// <summary>
         /// Gets Altora Worker
@@ -349,7 +348,7 @@ namespace Altora
             var request = new RestRequest($"/users/", Method.Post);
             request.AddJsonBody(worker);
 
-            var json = JsonSerializer.Serialize(worker);
+        //    var json = JsonSerializer.Serialize(worker);
             var result = await Client.ExecuteAsync<AltoraAddWorkerResponse>(request);
             if (result.IsSuccessful && result.Data != null)
                 return result.Data;
