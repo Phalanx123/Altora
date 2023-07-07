@@ -346,9 +346,13 @@ namespace Altora
         public async Task<AltoraAddWorkerResponse> AddWorkerAsync(AltoraWorker worker)
         {
             var request = new RestRequest($"/users/", Method.Post);
-            request.AddJsonBody(worker);
+            JsonSerializerOptions options = new()
+            {
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
+            };
 
-        //    var json = JsonSerializer.Serialize(worker);
+            var json = JsonSerializer.Serialize(worker, options);
+            request.AddJsonBody(json);
             var result = await Client.ExecuteAsync<AltoraAddWorkerResponse>(request);
             if (result.IsSuccessful && result.Data != null)
                 return result.Data;
