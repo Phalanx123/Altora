@@ -131,7 +131,6 @@ namespace Altora
         /// <param name="email">Employees email to filter by</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-
         public async Task<IEnumerable<AltoraWorker>> GetWorkersAsync(string? firstname = null, string? lastname = null, string? email = null)
         {
             var request = new RestRequest("/users", Method.Get);
