@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using Altora.Converters;
 
 namespace Altora.Model
 {
@@ -18,7 +19,9 @@ namespace Altora.Model
         public string? Position { get; set; }
         public string? Email { get; set; }
         public string? Dob { get; set; }
-        public string? Active { get; set; }
+        [JsonConverter(typeof(JsonBoolConverter))]
+        public bool Active { get; set; }
+        
         public string? Username { get; set; }
         public int? CompanyId { get; set; }
 
