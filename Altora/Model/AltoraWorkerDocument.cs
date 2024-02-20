@@ -32,6 +32,11 @@ namespace Altora.Model
         /// </summary>
         [JsonPropertyName("Issuer")]
         public string? Issuer { get; set; }
+        
+        /// <summary>
+        /// Document Type
+        /// </summary>
+        public virtual AltoraDocument? Document { get; set; }
 
     }
 }

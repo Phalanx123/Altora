@@ -49,12 +49,12 @@ namespace Altora
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
 
-        public async Task<IEnumerable<AltoraCourse>> GetCoursesAsync()
+        public async Task<List<AltoraCourse>> GetCoursesAsync()
         {
             var request = new RestRequest("/courses", Method.Get);
             var result = await Client.ExecuteAsync<IEnumerable<AltoraCourse>>(request);
             if (result.IsSuccessful && result.Data != null)
-                return result.Data;
+                return result.Data.ToList();
             throw new Exception(result.ErrorMessage);
 
         }
@@ -224,16 +224,18 @@ namespace Altora
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
 
-        public async Task<AltoraWorkerDocument> GetWorkerDocumentAsync(int workerId, int documentId)
+        public async Task<AltoraWorkerDocument?> GetWorkerDocumentAsync(int workerId, int documentId)
         {
-            var request = new RestRequest($"/users/{workerId}/documents", Method.Get);
-            request.AddQueryParameter("Documentid", documentId);
-            var result = await Client.ExecuteAsync<AltoraWorkerDocument>(request);
-            if (result.IsSuccessful && result.Data != null)
-                return result.Data;
-            throw new Exception(result.ErrorMessage);
-
-        }
+                var request = new RestRequest($"/users/{workerId}/documents", Method.Get);
+                request.AddQueryParameter("documentid", documentId);
+                var result = await Client.ExecuteAsync<AltoraWorkerDocument>(request);
+                return result switch
+                {
+                    { IsSuccessful: true, Data: not null } => result.Data,
+                    { IsSuccessful: true, Data: null } => null,
+                    _ => throw new Exception(result.ErrorMessage)
+                };
+            }
 
         /// <summary>
         /// Gets Worker Documents
