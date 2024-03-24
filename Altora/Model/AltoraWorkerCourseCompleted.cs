@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using IMSWeb.Utils;
 
 namespace Altora.Model
 {
@@ -21,11 +22,13 @@ namespace Altora.Model
         /// Course Issue Date
         /// </summary>
         [JsonPropertyName("Issue_Date")]
+        [JsonConverter(typeof(NullableDateTimeConverter))]
         public DateTime? IssueDate { get; set; }
         /// <summary>
         /// Course Expiry Date
         /// </summary>
         [JsonPropertyName("Expiry_Date")]
+        [JsonConverter(typeof(NullableDateTimeConverter))]
         public DateTime? ExpiryDate { get; set; }
         /// <summary>
         /// Certificate Number

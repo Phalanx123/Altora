@@ -1,6 +1,5 @@
 ﻿using Altora.Model;
 using RestSharp;
-using RestSharp.Serializers.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -281,11 +280,13 @@ namespace Altora
             var request = new RestRequest($"/users/{workerId}/courses", Method.Get);
             if (courseId != null)
                 request.AddQueryParameter("courseid", courseId.Value);
-            var result = await Client.ExecuteAsync<IEnumerable<AltoraWorkerCourseCompleted>>(request);
-            if (result.IsSuccessful && result.Data != null)
-                return result.Data;
-            throw new Exception(result.ErrorMessage);
-
+            var result = await Client.ExecuteAsync<List<AltoraWorkerCourseCompleted>>(request);
+            return result switch
+            {
+                { IsSuccessful: true, Data: not null } => result.Data,
+                { IsSuccessful: true, Data: null } => new List<AltoraWorkerCourseCompleted>(),
+                _ => throw new Exception(result.ErrorMessage)
+            };
         }
         /// <summary>
         /// Gets programs assigned to specified user
