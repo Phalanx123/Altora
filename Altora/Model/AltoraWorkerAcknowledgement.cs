@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using Altora.Converters;
 
 namespace Altora.Model
 {
@@ -8,7 +9,7 @@ namespace Altora.Model
     public class AltoraWorkerAcknowledgement
     {
         /// <summary>
-        /// Ackowledgement Id
+        /// Acknowledgement Id
         /// </summary>
         [JsonPropertyName("Acknowledgement_Number")]
         public string? AcknowledgementNumber { get; set; }
@@ -26,6 +27,12 @@ namespace Altora.Model
         /// Time Acknowledged
         /// </summary>
         [JsonPropertyName("Time_Acknowledged")]
+        [JsonConverter(typeof(CustomDateTimeConverter))]
         public DateTime? AcknowledgedTime { get; set; }
+        
+        /// <summary>
+        /// Acknowledgement ID
+        /// </summary>
+        public int AcknowledgementId { get; set; }
     }
 }

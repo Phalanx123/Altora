@@ -10,24 +10,27 @@ namespace Altora.Model
         /// <summary>
         /// A list of fields
         /// </summary>
-        public IEnumerable<AltoraWorkerFormItem>? Fields { get; set; }
+        public List<FieldItem>? Fields { get; set; }
+        
+        // Method to convert to Dictionary
+        public Dictionary<string, string> ToDictionary()
+        {
+            return Fields != null ? Fields.ToDictionary(field => field.Label, field => field.Value) : new Dictionary<string, string>();
+        }
+        
+        /// <summary>
+        /// Form ID
+        /// </summary>
+        public int FormID { get; set; }
+        
     }
-
-    /// <summary>
-    /// Headings and Values of form
-    /// </summary>
-    public class AltoraWorkerFormItem
+    
+    public class FieldItem
     {
-        /// <summary>
-        /// Form Heading
-        /// </summary>
-        [JsonPropertyName("label")]
-        public string? Heading { get; set; }
+        public string Label { get; set; }
+        public string Value { get; set; }
 
-        /// <summary>
-        /// Form Value
-        /// </summary>
-        [JsonPropertyName("value")]
-        public string? Value { get; set; }
+        // Constructor and any other necessary methods can go here
     }
+    
 }

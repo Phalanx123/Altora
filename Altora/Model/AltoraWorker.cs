@@ -28,6 +28,10 @@ namespace Altora.Model
         [JsonPropertyName("Custom_Fields")]
         public Dictionary<string, string>? CustomFields { get; set; }
         public AltoraCompany? AltoraCompany { get; set; }
+        
+        public List<AltoraWorkerAcknowledgement>? Acknowledgements { get; set; }
+        
+        public List<AltoraWorkerForm>? Forms { get; set; }
         public int[]? Programs { get; set; }
     }
     public class AltoraAddWorkerResponse
