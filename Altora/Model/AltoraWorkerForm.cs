@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace Altora.Model
+﻿namespace Altora.Model
 {
     /// <summary>
     /// Contains Worker Form Items
