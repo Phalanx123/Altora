@@ -7,20 +7,13 @@ namespace Altora
 {
     public class AltoraClient
     {
-        private readonly string ApiKey;
-        private readonly string ApiSecret;
-        private readonly string ClientID;
-        public RestClient Client { get; set; }
-
-
+        private RestClient Client { get; set; }
+        
         public AltoraClient(string apiKey, string apiSecret, string clientID)
         {
-            ApiKey = apiKey;
-            ApiSecret = apiSecret;
-            ClientID = clientID;
-            Client = new RestClient(@$"https://api.userlogin.com.au/v1/{ClientID}/");
+            Client = new RestClient(@$"https://api.userlogin.com.au/v1/{clientID}/");
             Client.AddDefaultHeaders(new Dictionary<string, string>
-                { { "x-api-key", ApiKey }, { "x-api-secret", ApiSecret } });
+                { { "x-api-key", apiKey }, { "x-api-secret", apiSecret } });
         }
 
         /// <summary>
@@ -28,18 +21,19 @@ namespace Altora
         /// </summary>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public async Task<AltoraWorker?> GetWorkerAsync(int workerID)
+        public async Task<AltoraWorker?> GetWorkerAsync(int workerID, bool includeCustomFields)
         {
             var request = new RestRequest($"/users/{workerID}");
+            if(includeCustomFields)
+                request.AddQueryParameter("customfields", "1");
             var result = await Client.ExecuteAsync<AltoraWorker>(request);
-            if (result is { IsSuccessful: true, Data: not null })
-            {
-                var companies = await GetCompaniesAsync();
-                result.Data.AltoraCompany = companies.SingleOrDefault(x => x.Id == result.Data.CompanyId);
-                return result.Data;
-            }
+            
+            if (result is not { IsSuccessful: true, Data: not null }) throw new Exception(result.ErrorMessage);
+            
+            var companies = await GetCompaniesAsync();
+            result.Data.AltoraCompany = companies.SingleOrDefault(x => x.Id == result.Data.CompanyId);
+            return result.Data;
 
-            throw new Exception(result.ErrorMessage);
         }
 
         /// <summary>
@@ -51,7 +45,7 @@ namespace Altora
         {
             var request = new RestRequest("/courses");
             var result = await Client.ExecuteAsync<IEnumerable<AltoraCourse>>(request);
-            if (result.IsSuccessful && result.Data != null)
+            if (result is { IsSuccessful: true, Data: not null })
                 return result.Data.ToList();
             throw new Exception(result.ErrorMessage);
         }
@@ -65,7 +59,7 @@ namespace Altora
         {
             var request = new RestRequest("/documents");
             var result = await Client.ExecuteAsync<IEnumerable<AltoraDocument>>(request);
-            if (result.IsSuccessful && result.Data != null)
+            if (result is { IsSuccessful: true, Data: not null })
                 return result.Data;
             throw new Exception(result.ErrorMessage);
         }
@@ -79,7 +73,7 @@ namespace Altora
         {
             var request = new RestRequest("/forms");
             var result = await Client.ExecuteAsync<IEnumerable<AltoraForm>>(request);
-            if (result.IsSuccessful && result.Data != null)
+            if (result is { IsSuccessful: true, Data: not null })
                 return result.Data;
             throw new Exception(result.ErrorMessage);
         }
@@ -93,7 +87,7 @@ namespace Altora
         {
             var request = new RestRequest("/acknowledgements");
             var result = await Client.ExecuteAsync<IEnumerable<AltoraAcknowledgement>>(request);
-            if (result.IsSuccessful && result.Data != null)
+            if (result is { IsSuccessful: true, Data: not null })
                 return result.Data;
             throw new Exception(result.ErrorMessage);
         }
@@ -107,7 +101,7 @@ namespace Altora
         {
             var request = new RestRequest("/programs");
             var result = await Client.ExecuteAsync<IEnumerable<AltoraProgram>>(request);
-            if (result.IsSuccessful && result.Data != null)
+            if (result is { IsSuccessful: true, Data: not null })
                 return result.Data;
             throw new Exception(result.ErrorMessage);
         }
@@ -115,32 +109,26 @@ namespace Altora
         /// <summary>
         /// Gets Altora Workers
         /// </summary>
-        /// <param name="firstname">Employees first name to filter by</param>
-        /// <param name="lastname">Employees last name to filter by</param>
-        /// <param name="email">Employees email to filter by</param>
+        /// <param name="parameters"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public async Task<IEnumerable<AltoraWorker>> GetWorkersAsync(string? firstname = null, string? lastname = null,
-            string? email = null)
+        public async Task<IEnumerable<AltoraWorker>> GetWorkersAsync(AltoraWorkerSearchParameters? parameters)
         {
             var request = new RestRequest("/users");
-            if (firstname != null)
-                request.AddQueryParameter(nameof(firstname), firstname);
-            if (lastname != null)
-                request.AddQueryParameter(nameof(lastname), lastname);
-            if (email != null)
-                request.AddQueryParameter(nameof(email), email);
+            if (!string.IsNullOrWhiteSpace(parameters?.FirstName))
+                request.AddQueryParameter(nameof(parameters.FirstName), parameters.FirstName);
+            if (!string.IsNullOrWhiteSpace(parameters?.LastName))
+                request.AddQueryParameter(nameof(parameters.LastName), parameters.LastName);
+            if (!string.IsNullOrWhiteSpace(parameters?.Email))
+                request.AddQueryParameter(nameof(parameters.Email), parameters.Email);
 
             var result = await Client.ExecuteAsync<IEnumerable<AltoraWorker>>(request);
-            if (result.IsSuccessful && result.Data != null)
-            {
-                var companies = await GetCompaniesAsync();
-                foreach (var worker in result.Data)
-                    worker.AltoraCompany = companies.SingleOrDefault(x => x.Id == worker.CompanyId);
-                return result.Data;
-            }
+            if (!result.IsSuccessful || result.Data == null) throw new Exception(result.ErrorMessage);
+            var companies = (await GetCompaniesAsync()).ToList();
+            foreach (var worker in result.Data)
+                worker.AltoraCompany = companies.SingleOrDefault(x => x.Id == worker.CompanyId);
+            return result.Data;
 
-            throw new Exception(result.ErrorMessage);
         }
 
 
@@ -151,7 +139,7 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<IEnumerable<AltoraWorker>> GetWorkersAsync(string companyName)
         {
-            var workers = await GetWorkersAsync();
+            var workers = await GetWorkersAsync(new AltoraWorkerSearchParameters());
             return workers.Where(x => x.AltoraCompany!.Name == companyName);
         }
 
@@ -162,7 +150,7 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<IEnumerable<AltoraWorker>> GetWorkersAsync(int companyID)
         {
-            var workers = await GetWorkersAsync();
+            var workers = await GetWorkersAsync(new AltoraWorkerSearchParameters());
             return workers.Where(x => x.AltoraCompany!.Id == companyID);
         }
 
@@ -175,7 +163,7 @@ namespace Altora
         {
             var request = new RestRequest("/companies");
             var result = await Client.ExecuteAsync<IEnumerable<AltoraCompany>>(request);
-            if (result.IsSuccessful && result.Data != null)
+            if (result is { IsSuccessful: true, Data: not null })
                 return result.Data;
             throw new Exception(result.ErrorMessage);
         }
@@ -189,7 +177,7 @@ namespace Altora
         {
             var request = new RestRequest($"/companies/{companyId}/admins");
             var result = await Client.ExecuteAsync<int[]>(request);
-            if (result.IsSuccessful && result.Data != null)
+            if (result is { IsSuccessful: true, Data: not null })
                 return result.Data;
             throw new Exception(result.ErrorMessage);
         }
@@ -204,7 +192,7 @@ namespace Altora
             var request = new RestRequest($"/companies/{companyId}/active", Method.Put);
             request.AddBody(active ? 1 : 0);
             var result = await Client.ExecuteAsync<AltoraRequestResponse>(request);
-            if (result.IsSuccessful && result.Data != null)
+            if (result is { IsSuccessful: true, Data: not null })
                 return result.Data;
             throw new Exception(result.ErrorMessage);
         }
@@ -284,7 +272,7 @@ namespace Altora
             return result switch
             {
                 { IsSuccessful: true, Data: not null } => result.Data,
-                { IsSuccessful: true, Data: null } => new List<AltoraWorkerCourseCompleted>(),
+                { IsSuccessful: true, Data: null } => [],
                 _ => throw new Exception(result.ErrorMessage)
             };
         }
@@ -298,7 +286,7 @@ namespace Altora
         {
             var request = new RestRequest($"/users/{workerId}/programs");
             var result = await Client.ExecuteAsync<int[]>(request);
-            if (result.IsSuccessful && result.Data != null)
+            if (result is { IsSuccessful: true, Data: not null })
                 return result.Data;
             throw new Exception(result.ErrorMessage);
         }
@@ -316,7 +304,7 @@ namespace Altora
                 Programs = programs
             });
             var result = await Client.ExecuteAsync<AltoraRequestResponse>(request);
-            if (result.IsSuccessful && result.Data != null)
+            if (result is { IsSuccessful: true, Data: not null })
                 return result.Data;
             throw new Exception(result.ErrorMessage);
         }
@@ -331,7 +319,7 @@ namespace Altora
             var request = new RestRequest($"/users/{workerId}/active", Method.Put);
             request.AddBody(active ? 1 : 0);
             var result = await Client.ExecuteAsync<AltoraRequestResponse>(request);
-            if (result.IsSuccessful && result.Data != null)
+            if (result is { IsSuccessful: true, Data: not null })
                 return result.Data;
             throw new Exception(result.ErrorMessage);
         }
@@ -352,7 +340,7 @@ namespace Altora
             var json = JsonSerializer.Serialize(worker, options);
             request.AddJsonBody(json);
             var result = await Client.ExecuteAsync<AltoraAddWorkerResponse>(request);
-            if (result.IsSuccessful && result.Data != null)
+            if (result is { IsSuccessful: true, Data: not null })
                 return result.Data;
             throw new Exception(result.ErrorMessage);
         }

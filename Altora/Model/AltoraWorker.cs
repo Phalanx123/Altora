@@ -19,6 +19,7 @@ namespace Altora.Model
         public string? Position { get; set; }
         public string? Email { get; set; }
         public string? Dob { get; set; }
+        
         [JsonConverter(typeof(JsonBoolConverter))]
         public bool Active { get; set; }
         
