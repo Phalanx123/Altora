@@ -25,8 +25,8 @@
     
     public class FieldItem
     {
-        public string Label { get; set; }
-        public string Value { get; set; }
+        public string? Label { get; set; }
+        public string? Value { get; set; }
 
         // Constructor and any other necessary methods can go here
     }
