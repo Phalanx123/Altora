@@ -344,5 +344,21 @@ namespace Altora
                 return result.Data;
             throw new Exception(result.ErrorMessage);
         }
+
+        public async Task<AltoraRequestResponse> UpdateWorker(AltoraWorker worker)
+        {
+            var request = new RestRequest($"/users/{worker.Id}", Method.Patch);
+            JsonSerializerOptions options = new()
+            {
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
+            };
+
+            var json = JsonSerializer.Serialize(worker, options);
+            request.AddJsonBody(json);
+            var result = await Client.ExecuteAsync<AltoraRequestResponse>(request);
+            if (result is { IsSuccessful: true, Data: not null })
+                return result.Data;
+            throw new Exception(result.ErrorMessage);
+        }
     }
 }
