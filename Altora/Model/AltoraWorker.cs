@@ -34,6 +34,7 @@ namespace Altora.Model
         
         public List<AltoraWorkerForm>? Forms { get; set; }
         public int[]? Programs { get; set; }
+
     }
     public class AltoraAddWorkerResponse
     {
