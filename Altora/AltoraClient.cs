@@ -2,18 +2,21 @@
 using RestSharp;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Altora.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace Altora
 {
     public class AltoraClient
     {
         private RestClient Client { get; set; }
-        
-        public AltoraClient(string apiKey, string apiSecret, string clientID)
+
+        public AltoraClient(IOptions<AltoraOptions> options)
         {
-            Client = new RestClient(@$"https://api.userlogin.com.au/v1/{clientID}/");
+
+            Client = new RestClient($"https://api.userlogin.com.au/v1/{options.Value.ClientId}");
             Client.AddDefaultHeaders(new Dictionary<string, string>
-                { { "x-api-key", apiKey }, { "x-api-secret", apiSecret } });
+                { { "x-api-key", options.Value.ApiKey }, { "x-api-secret", options.Value.ApiSecret } });
         }
 
         /// <summary>
