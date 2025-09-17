@@ -22,7 +22,7 @@ namespace Altora
             _logger.LogInformation("Initializing AltoraClient for ClientId: {ClientId}", options.Value.ClientId);
             _httpClient = new HttpClient
             {
-                BaseAddress = new Uri($"https://api.userlogin.com.au/v1/{options.Value.ClientId}")
+                BaseAddress = new Uri($"https://api.userlogin.com.au/v1/{options.Value.ClientId}/")
             };
 
             logger.LogInformation("BaseAddress set to: {BaseAddress}", _httpClient.BaseAddress);
@@ -55,8 +55,8 @@ namespace Altora
         {
             _httpClient = httpClient;
             _logger = logger;
-            _httpClient.BaseAddress = new Uri($"https://api.userlogin.com.au/v1/{options.Value.ClientId}");
-
+            _httpClient.BaseAddress = new Uri($"https://api.userlogin.com.au/v1/{options.Value.ClientId}/");
+            logger.LogInformation("BaseAddress set to: {BaseAddress}", _httpClient.BaseAddress);
             // Add default headers
             _httpClient.DefaultRequestHeaders.Add("X-Api-Key", options.Value.ApiKey);
             _httpClient.DefaultRequestHeaders.Add("X-Api-Secret", options.Value.ApiSecret);
