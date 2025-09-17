@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "dgSpecHash": "oiWETNkTOqk=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\AFerreira\\RiderProjects\\Altora\\Altora.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\AFerreira\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\9.0.4\\microsoft.extensions.dependencyinjection.abstractions.9.0.4.nupkg.sha512",
+    "C:\\Users\\AFerreira\\.nuget\\packages\\microsoft.extensions.options\\9.0.4\\microsoft.extensions.options.9.0.4.nupkg.sha512",
+    "C:\\Users\\AFerreira\\.nuget\\packages\\microsoft.extensions.primitives\\9.0.4\\microsoft.extensions.primitives.9.0.4.nupkg.sha512",
+    "C:\\Users\\AFerreira\\.nuget\\packages\\restsharp\\110.2.0\\restsharp.110.2.0.nupkg.sha512",
+    "C:\\Users\\AFerreira\\.nuget\\packages\\system.text.encodings.web\\7.0.0\\system.text.encodings.web.7.0.0.nupkg.sha512",
+    "C:\\Users\\AFerreira\\.nuget\\packages\\system.text.json\\7.0.2\\system.text.json.7.0.2.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'RestSharp' 110.2.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-4rr6-2v9v-wcpc",
+      "projectPath": "C:\\Users\\AFerreira\\RiderProjects\\Altora\\Altora.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\AFerreira\\RiderProjects\\Altora\\Altora.csproj",
+      "libraryId": "RestSharp",
+      "targetGraphs": [
+        "net9.0"
+      ]
+    }
+  ]
+}
