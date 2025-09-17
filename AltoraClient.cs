@@ -1,22 +1,54 @@
 ﻿using Altora.Model;
-using RestSharp;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altora.Configuration;
 using Microsoft.Extensions.Options;
+using System.Text;
 
 namespace Altora
 {
-    public class AltoraClient
+    public class AltoraClient : IDisposable
     {
-        private RestClient Client { get; set; }
+        private readonly HttpClient _httpClient;
+        private readonly JsonSerializerOptions _jsonOptions;
+        private bool _disposed;
 
         public AltoraClient(IOptions<AltoraOptions> options)
         {
+            _httpClient = new HttpClient
+            {
+                BaseAddress = new Uri($"https://api.userlogin.com.au/v1/{options.Value.ClientId}")
+            };
 
-            Client = new RestClient($"https://api.userlogin.com.au/v1/{options.Value.ClientId}");
-            Client.AddDefaultHeaders(new Dictionary<string, string>
-                { { "x-api-key", options.Value.ApiKey }, { "x-api-secret", options.Value.ApiSecret } });
+            // Add default headers
+            _httpClient.DefaultRequestHeaders.Add("x-api-key", options.Value.ApiKey);
+            _httpClient.DefaultRequestHeaders.Add("x-api-secret", options.Value.ApiSecret);
+            _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+
+            // Configure JSON serializer options
+            _jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
+        }
+
+        // Alternative constructor for DI with HttpClientFactory
+        public AltoraClient(HttpClient httpClient, IOptions<AltoraOptions> options)
+        {
+            _httpClient = httpClient;
+            _httpClient.BaseAddress = new Uri($"https://api.userlogin.com.au/v1/{options.Value.ClientId}");
+
+            // Add default headers
+            _httpClient.DefaultRequestHeaders.Add("x-api-key", options.Value.ApiKey);
+            _httpClient.DefaultRequestHeaders.Add("x-api-secret", options.Value.ApiSecret);
+            _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+
+            _jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
         }
 
         /// <summary>
@@ -24,19 +56,25 @@ namespace Altora
         /// </summary>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public async Task<AltoraWorker?> GetWorkerAsync(int workerID, bool includeCustomFields)
+        public async Task<AltoraWorker?> GetWorkerAsync(int workerId, bool includeCustomFields)
         {
-            var request = new RestRequest($"/users/{workerID}");
-            if(includeCustomFields)
-                request.AddQueryParameter("customfields", "1");
-            var result = await Client.ExecuteAsync<AltoraWorker>(request);
-            
-            if (result is not { IsSuccessful: true, Data: not null }) throw new Exception(result.ErrorMessage);
-            
-            var companies = await GetCompaniesAsync();
-            result.Data.AltoraCompany = companies.SingleOrDefault(x => x.Id == result.Data.CompanyId);
-            return result.Data;
+            var url = $"/users/{workerId}";
+            if (includeCustomFields)
+                url += "?customfields=1";
 
+            var response = await _httpClient.GetAsync(url);
+            await EnsureSuccessStatusCode(response);
+
+            var json = await response.Content.ReadAsStringAsync();
+            var worker = JsonSerializer.Deserialize<AltoraWorker>(json, _jsonOptions);
+
+            if (worker != null)
+            {
+                var companies = await GetCompaniesAsync();
+                worker.AltoraCompany = companies.SingleOrDefault(x => x.Id == worker.CompanyId);
+            }
+
+            return worker;
         }
 
         /// <summary>
@@ -46,11 +84,12 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<List<AltoraCourse>> GetCoursesAsync()
         {
-            var request = new RestRequest("/courses");
-            var result = await Client.ExecuteAsync<IEnumerable<AltoraCourse>>(request);
-            if (result is { IsSuccessful: true, Data: not null })
-                return result.Data.ToList();
-            throw new Exception(result.ErrorMessage);
+            var response = await _httpClient.GetAsync("/courses");
+            await EnsureSuccessStatusCode(response);
+
+            var json = await response.Content.ReadAsStringAsync();
+            var courses = JsonSerializer.Deserialize<IEnumerable<AltoraCourse>>(json, _jsonOptions);
+            return courses?.ToList() ?? new List<AltoraCourse>();
         }
 
         /// <summary>
@@ -60,11 +99,12 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<IEnumerable<AltoraDocument>> GetDocumentsAsync()
         {
-            var request = new RestRequest("/documents");
-            var result = await Client.ExecuteAsync<IEnumerable<AltoraDocument>>(request);
-            if (result is { IsSuccessful: true, Data: not null })
-                return result.Data;
-            throw new Exception(result.ErrorMessage);
+            var response = await _httpClient.GetAsync("/documents");
+            await EnsureSuccessStatusCode(response);
+
+            var json = await response.Content.ReadAsStringAsync();
+            var documents = JsonSerializer.Deserialize<IEnumerable<AltoraDocument>>(json, _jsonOptions);
+            return documents ?? [];
         }
 
         /// <summary>
@@ -74,11 +114,12 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<IEnumerable<AltoraForm>> GetFormsAsync()
         {
-            var request = new RestRequest("/forms");
-            var result = await Client.ExecuteAsync<IEnumerable<AltoraForm>>(request);
-            if (result is { IsSuccessful: true, Data: not null })
-                return result.Data;
-            throw new Exception(result.ErrorMessage);
+            var response = await _httpClient.GetAsync("/forms");
+            await EnsureSuccessStatusCode(response);
+
+            var json = await response.Content.ReadAsStringAsync();
+            var forms = JsonSerializer.Deserialize<IEnumerable<AltoraForm>>(json, _jsonOptions);
+            return forms ?? [];
         }
 
         /// <summary>
@@ -88,11 +129,12 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<IEnumerable<AltoraAcknowledgement>> GetAcknowledgementsAsync()
         {
-            var request = new RestRequest("/acknowledgements");
-            var result = await Client.ExecuteAsync<IEnumerable<AltoraAcknowledgement>>(request);
-            if (result is { IsSuccessful: true, Data: not null })
-                return result.Data;
-            throw new Exception(result.ErrorMessage);
+            var response = await _httpClient.GetAsync("/acknowledgements");
+            await EnsureSuccessStatusCode(response);
+
+            var json = await response.Content.ReadAsStringAsync();
+            var acknowledgements = JsonSerializer.Deserialize<IEnumerable<AltoraAcknowledgement>>(json, _jsonOptions);
+            return acknowledgements ?? [];
         }
 
         /// <summary>
@@ -102,11 +144,12 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<IEnumerable<AltoraProgram>> GetProgramsAsync()
         {
-            var request = new RestRequest("/programs");
-            var result = await Client.ExecuteAsync<IEnumerable<AltoraProgram>>(request);
-            if (result is { IsSuccessful: true, Data: not null })
-                return result.Data;
-            throw new Exception(result.ErrorMessage);
+            var response = await _httpClient.GetAsync("/programs");
+            await EnsureSuccessStatusCode(response);
+
+            var json = await response.Content.ReadAsStringAsync();
+            var programs = JsonSerializer.Deserialize<IEnumerable<AltoraProgram>>(json, _jsonOptions);
+            return programs ?? [];
         }
 
         /// <summary>
@@ -117,23 +160,33 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<IEnumerable<AltoraWorker>> GetWorkersAsync(AltoraWorkerSearchParameters? parameters)
         {
-            var request = new RestRequest("/users");
+            var url = "/users";
+            var queryParams = new List<string>();
+
             if (!string.IsNullOrWhiteSpace(parameters?.FirstName))
-                request.AddQueryParameter(nameof(parameters.FirstName), parameters.FirstName);
+                queryParams.Add($"FirstName={Uri.EscapeDataString(parameters.FirstName)}");
             if (!string.IsNullOrWhiteSpace(parameters?.LastName))
-                request.AddQueryParameter(nameof(parameters.LastName), parameters.LastName);
+                queryParams.Add($"LastName={Uri.EscapeDataString(parameters.LastName)}");
             if (!string.IsNullOrWhiteSpace(parameters?.Email))
-                request.AddQueryParameter(nameof(parameters.Email), parameters.Email);
+                queryParams.Add($"Email={Uri.EscapeDataString(parameters.Email)}");
 
-            var result = await Client.ExecuteAsync<IEnumerable<AltoraWorker>>(request);
-            if (!result.IsSuccessful || result.Data == null) throw new Exception(result.ErrorMessage);
+            if (queryParams.Any())
+                url += "?" + string.Join("&", queryParams);
+
+            var response = await _httpClient.GetAsync(url);
+            await EnsureSuccessStatusCode(response);
+
+            var json = await response.Content.ReadAsStringAsync();
+            var workers = JsonSerializer.Deserialize<List<AltoraWorker>>(json, _jsonOptions)
+                          ?? [];
+            if (workers.Count == 0)
+                return [];
             var companies = (await GetCompaniesAsync()).ToList();
-            foreach (var worker in result.Data)
+            foreach (var worker in workers)
                 worker.AltoraCompany = companies.SingleOrDefault(x => x.Id == worker.CompanyId);
-            return result.Data;
 
+            return workers;
         }
-
 
         /// <summary>
         /// Gets Altora Workers from specific company
@@ -151,10 +204,10 @@ namespace Altora
         /// </summary>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public async Task<IEnumerable<AltoraWorker>> GetWorkersAsync(int companyID)
+        public async Task<IEnumerable<AltoraWorker>> GetWorkersAsync(int companyId)
         {
             var workers = await GetWorkersAsync(new AltoraWorkerSearchParameters());
-            return workers.Where(x => x.AltoraCompany!.Id == companyID);
+            return workers.Where(x => x.AltoraCompany!.Id == companyId);
         }
 
         /// <summary>
@@ -164,11 +217,12 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<IEnumerable<AltoraCompany>> GetCompaniesAsync()
         {
-            var request = new RestRequest("/companies");
-            var result = await Client.ExecuteAsync<IEnumerable<AltoraCompany>>(request);
-            if (result is { IsSuccessful: true, Data: not null })
-                return result.Data;
-            throw new Exception(result.ErrorMessage);
+            var response = await _httpClient.GetAsync("/companies");
+            await EnsureSuccessStatusCode(response);
+
+            var json = await response.Content.ReadAsStringAsync();
+            var companies = JsonSerializer.Deserialize<IEnumerable<AltoraCompany>>(json, _jsonOptions);
+            return companies ?? [];
         }
 
         /// <summary>
@@ -178,11 +232,12 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<int[]> GetCompanyAdminsAsync(string companyId)
         {
-            var request = new RestRequest($"/companies/{companyId}/admins");
-            var result = await Client.ExecuteAsync<int[]>(request);
-            if (result is { IsSuccessful: true, Data: not null })
-                return result.Data;
-            throw new Exception(result.ErrorMessage);
+            var response = await _httpClient.GetAsync($"/companies/{companyId}/admins");
+            await EnsureSuccessStatusCode(response);
+
+            var json = await response.Content.ReadAsStringAsync();
+            var admins = JsonSerializer.Deserialize<int[]>(json, _jsonOptions);
+            return admins ?? [];
         }
 
         /// <summary>
@@ -192,12 +247,13 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<AltoraRequestResponse> SetCompanyStatusAsync(string companyId, bool active)
         {
-            var request = new RestRequest($"/companies/{companyId}/active", Method.Put);
-            request.AddBody(active ? 1 : 0);
-            var result = await Client.ExecuteAsync<AltoraRequestResponse>(request);
-            if (result is { IsSuccessful: true, Data: not null })
-                return result.Data;
-            throw new Exception(result.ErrorMessage);
+            var content = new StringContent((active ? 1 : 0).ToString(), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PutAsync($"/companies/{companyId}/active", content);
+            await EnsureSuccessStatusCode(response);
+
+            var json = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<AltoraRequestResponse>(json, _jsonOptions);
+            return result ?? throw new Exception("Failed to deserialize response");
         }
 
         /// <summary>
@@ -207,19 +263,20 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<AltoraWorkerDocument?> GetWorkerDocumentAsync(int workerId, int documentId)
         {
-            var request = new RestRequest($"/users/{workerId}/documents");
-            request.AddQueryParameter("documentid", documentId);
-            var result = await Client.ExecuteAsync<AltoraWorkerDocument>(request);
-            return result switch
-            {
-                { IsSuccessful: true, Data: not null } => result.Data,
-                { IsSuccessful: true, Data: null } => null,
-                _ => throw new Exception(result.ErrorMessage)
-            };
+            var url = $"/users/{workerId}/documents?documentid={documentId}";
+            var response = await _httpClient.GetAsync(url);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                return null;
+
+            await EnsureSuccessStatusCode(response);
+
+            var json = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<AltoraWorkerDocument>(json, _jsonOptions);
         }
 
         /// <summary>
-        /// Gets Worker Documents
+        /// Gets Worker Acknowledgement
         /// </summary>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
@@ -228,10 +285,16 @@ namespace Altora
         {
             try
             {
-                var request = new RestRequest($"/users/{workerId}/acknowledgements");
-                request.AddQueryParameter("acknowledgementid", acknowledgementId);
-                var result = await Client.ExecuteAsync<AltoraWorkerAcknowledgement>(request);
-                return result is { IsSuccessful: true, Data: not null } ? result.Data : null;
+                var url = $"/users/{workerId}/acknowledgements?acknowledgementid={acknowledgementId}";
+                var response = await _httpClient.GetAsync(url);
+
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    return null;
+
+                await EnsureSuccessStatusCode(response);
+
+                var json = await response.Content.ReadAsStringAsync();
+                return JsonSerializer.Deserialize<AltoraWorkerAcknowledgement>(json, _jsonOptions);
             }
             catch (Exception e)
             {
@@ -249,10 +312,16 @@ namespace Altora
         {
             try
             {
-                var request = new RestRequest($"/users/{workerId}/forms");
-                request.AddQueryParameter("formid", formId);
-                var result = await Client.ExecuteAsync<AltoraWorkerForm>(request);
-                return result is { IsSuccessful: true, Data: not null } ? result.Data : null;
+                var url = $"/users/{workerId}/forms?formid={formId}";
+                var response = await _httpClient.GetAsync(url);
+
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    return null;
+
+                await EnsureSuccessStatusCode(response);
+
+                var json = await response.Content.ReadAsStringAsync();
+                return JsonSerializer.Deserialize<AltoraWorkerForm>(json, _jsonOptions);
             }
             catch (Exception e)
             {
@@ -268,16 +337,16 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<IEnumerable<AltoraWorkerCourseCompleted>> GetWorkerCoursesAsync(int workerId, int? courseId)
         {
-            var request = new RestRequest($"/users/{workerId}/courses");
-            if (courseId != null)
-                request.AddQueryParameter("courseid", courseId.Value);
-            var result = await Client.ExecuteAsync<List<AltoraWorkerCourseCompleted>>(request);
-            return result switch
-            {
-                { IsSuccessful: true, Data: not null } => result.Data,
-                { IsSuccessful: true, Data: null } => [],
-                _ => throw new Exception(result.ErrorMessage)
-            };
+            var url = $"/users/{workerId}/courses";
+            if (courseId.HasValue)
+                url += $"?courseid={courseId.Value}";
+
+            var response = await _httpClient.GetAsync(url);
+            await EnsureSuccessStatusCode(response);
+
+            var json = await response.Content.ReadAsStringAsync();
+            var courses = JsonSerializer.Deserialize<List<AltoraWorkerCourseCompleted>>(json, _jsonOptions);
+            return courses ?? new List<AltoraWorkerCourseCompleted>();
         }
 
         /// <summary>
@@ -287,11 +356,12 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<int[]> GetWorkerProgramsAsync(int workerId)
         {
-            var request = new RestRequest($"/users/{workerId}/programs");
-            var result = await Client.ExecuteAsync<int[]>(request);
-            if (result is { IsSuccessful: true, Data: not null })
-                return result.Data;
-            throw new Exception(result.ErrorMessage);
+            var response = await _httpClient.GetAsync($"/users/{workerId}/programs");
+            await EnsureSuccessStatusCode(response);
+
+            var json = await response.Content.ReadAsStringAsync();
+            var programs = JsonSerializer.Deserialize<int[]>(json, _jsonOptions);
+            return programs ?? [];
         }
 
         /// <summary>
@@ -301,15 +371,16 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<AltoraRequestResponse> SetWorkerProgramsAsync(int workerId, int[] programs)
         {
-            var request = new RestRequest($"/users/{workerId}/programs", Method.Put);
-            request.AddJsonBody(new
-            {
-                Programs = programs
-            });
-            var result = await Client.ExecuteAsync<AltoraRequestResponse>(request);
-            if (result is { IsSuccessful: true, Data: not null })
-                return result.Data;
-            throw new Exception(result.ErrorMessage);
+            var requestBody = new { Programs = programs };
+            var json = JsonSerializer.Serialize(requestBody, _jsonOptions);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PutAsync($"/users/{workerId}/programs", content);
+            await EnsureSuccessStatusCode(response);
+
+            var responseJson = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<AltoraRequestResponse>(responseJson, _jsonOptions);
+            return result ?? throw new Exception("Failed to deserialize response");
         }
 
         /// <summary>
@@ -319,12 +390,13 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<AltoraRequestResponse> SetWorkerStatusAsync(int workerId, bool active)
         {
-            var request = new RestRequest($"/users/{workerId}/active", Method.Put);
-            request.AddBody(active ? 1 : 0);
-            var result = await Client.ExecuteAsync<AltoraRequestResponse>(request);
-            if (result is { IsSuccessful: true, Data: not null })
-                return result.Data;
-            throw new Exception(result.ErrorMessage);
+            var content = new StringContent((active ? 1 : 0).ToString(), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PutAsync($"/users/{workerId}/active", content);
+            await EnsureSuccessStatusCode(response);
+
+            var json = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<AltoraRequestResponse>(json, _jsonOptions);
+            return result ?? throw new Exception("Failed to deserialize response");
         }
 
         /// <summary>
@@ -334,34 +406,66 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<AltoraAddWorkerResponse> AddWorkerAsync(AltoraWorker worker)
         {
-            var request = new RestRequest($"/users/", Method.Post);
-            JsonSerializerOptions options = new()
+            var jsonOptions = new JsonSerializerOptions
             {
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             };
 
-            var json = JsonSerializer.Serialize(worker, options);
-            request.AddJsonBody(json);
-            var result = await Client.ExecuteAsync<AltoraAddWorkerResponse>(request);
-            if (result is { IsSuccessful: true, Data: not null })
-                return result.Data;
-            throw new Exception(result.ErrorMessage);
+            var json = JsonSerializer.Serialize(worker, jsonOptions);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync("/users/", content);
+            await EnsureSuccessStatusCode(response);
+
+            var responseJson = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<AltoraAddWorkerResponse>(responseJson, _jsonOptions);
+            return result ?? throw new Exception("Failed to deserialize response");
         }
 
         public async Task<AltoraRequestResponse> UpdateWorker(AltoraWorker worker)
         {
-            var request = new RestRequest($"/users/{worker.Id}", Method.Patch);
-            JsonSerializerOptions options = new()
+            var jsonOptions = new JsonSerializerOptions
             {
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             };
 
-            var json = JsonSerializer.Serialize(worker, options);
-            request.AddJsonBody(json);
-            var result = await Client.ExecuteAsync<AltoraRequestResponse>(request);
-            if (result is { IsSuccessful: true, Data: not null })
-                return result.Data;
-            throw new Exception(result.ErrorMessage);
+            var json = JsonSerializer.Serialize(worker, jsonOptions);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PatchAsync($"/users/{worker.Id}", content);
+            await EnsureSuccessStatusCode(response);
+
+            var responseJson = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<AltoraRequestResponse>(responseJson, _jsonOptions);
+            return result ?? throw new Exception("Failed to deserialize response");
+        }
+
+        private async Task EnsureSuccessStatusCode(HttpResponseMessage response)
+        {
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"Request failed with status {response.StatusCode}: {errorContent}");
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed || !disposing)
+            {
+                return;
+            }
+
+            _httpClient.Dispose();
+            _disposed = true;
         }
     }
 }
