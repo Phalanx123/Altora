@@ -4,6 +4,8 @@ using System.Text.Json.Serialization;
 using Altora.Configuration;
 using Microsoft.Extensions.Options;
 using System.Text;
+using Altora.Utilities;
+using Microsoft.Extensions.Logging;
 
 namespace Altora
 {
@@ -11,20 +13,26 @@ namespace Altora
     {
         private readonly HttpClient _httpClient;
         private readonly JsonSerializerOptions _jsonOptions;
+        private readonly ILogger<AltoraClient> _logger;
         private bool _disposed;
 
-        public AltoraClient(IOptions<AltoraOptions> options)
+        public AltoraClient(IOptions<AltoraOptions> options, ILogger<AltoraClient> logger)
         {
+            _logger = logger;
+            _logger.LogInformation("Initializing AltoraClient for ClientId: {ClientId}", options.Value.ClientId);
             _httpClient = new HttpClient
             {
                 BaseAddress = new Uri($"https://api.userlogin.com.au/v1/{options.Value.ClientId}")
             };
 
+            logger.LogInformation("BaseAddress set to: {BaseAddress}", _httpClient.BaseAddress);
+
             // Add default headers
-            _httpClient.DefaultRequestHeaders.Add("x-api-key", options.Value.ApiKey);
-            _httpClient.DefaultRequestHeaders.Add("x-api-secret", options.Value.ApiSecret);
+            _httpClient.DefaultRequestHeaders.Add("X-Api-Key", options.Value.ApiKey);
+            _httpClient.DefaultRequestHeaders.Add("X-Api-Secret", options.Value.ApiSecret);
             _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
 
+            LogCredentials(options.Value);
             // Configure JSON serializer options
             _jsonOptions = new JsonSerializerOptions
             {
@@ -33,17 +41,27 @@ namespace Altora
             };
         }
 
+        private void LogCredentials(AltoraOptions options)
+        {
+            _logger.LogInformation(
+                "Default headers added: X-Api-Key=***{ApiKey}, X-Api-Secret=***{ApiSecret}, ClientId=***{ClientId}",
+                SafeTailUtil.SafeTail(options.ApiKey),
+                SafeTailUtil.SafeTail(options.ApiSecret),
+                SafeTailUtil.SafeTail(options.ClientId));
+        }
+
         // Alternative constructor for DI with HttpClientFactory
-        public AltoraClient(HttpClient httpClient, IOptions<AltoraOptions> options)
+        public AltoraClient(HttpClient httpClient, IOptions<AltoraOptions> options, ILogger<AltoraClient> logger)
         {
             _httpClient = httpClient;
+            _logger = logger;
             _httpClient.BaseAddress = new Uri($"https://api.userlogin.com.au/v1/{options.Value.ClientId}");
 
             // Add default headers
-            _httpClient.DefaultRequestHeaders.Add("x-api-key", options.Value.ApiKey);
-            _httpClient.DefaultRequestHeaders.Add("x-api-secret", options.Value.ApiSecret);
+            _httpClient.DefaultRequestHeaders.Add("X-Api-Key", options.Value.ApiKey);
+            _httpClient.DefaultRequestHeaders.Add("X-Api-Secret", options.Value.ApiSecret);
             _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-
+            LogCredentials(options.Value);
             _jsonOptions = new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
