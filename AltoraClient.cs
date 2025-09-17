@@ -58,7 +58,7 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<AltoraWorker?> GetWorkerAsync(int workerId, bool includeCustomFields)
         {
-            var url = $"/users/{workerId}";
+            var url = $"users/{workerId}";
             if (includeCustomFields)
                 url += "?customfields=1";
 
@@ -84,7 +84,7 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<List<AltoraCourse>> GetCoursesAsync()
         {
-            var response = await _httpClient.GetAsync("/courses");
+            var response = await _httpClient.GetAsync("courses");
             await EnsureSuccessStatusCode(response);
 
             var json = await response.Content.ReadAsStringAsync();
@@ -99,7 +99,7 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<IEnumerable<AltoraDocument>> GetDocumentsAsync()
         {
-            var response = await _httpClient.GetAsync("/documents");
+            var response = await _httpClient.GetAsync("documents");
             await EnsureSuccessStatusCode(response);
 
             var json = await response.Content.ReadAsStringAsync();
@@ -114,7 +114,7 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<IEnumerable<AltoraForm>> GetFormsAsync()
         {
-            var response = await _httpClient.GetAsync("/forms");
+            var response = await _httpClient.GetAsync("forms");
             await EnsureSuccessStatusCode(response);
 
             var json = await response.Content.ReadAsStringAsync();
@@ -129,7 +129,7 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<IEnumerable<AltoraAcknowledgement>> GetAcknowledgementsAsync()
         {
-            var response = await _httpClient.GetAsync("/acknowledgements");
+            var response = await _httpClient.GetAsync("acknowledgements");
             await EnsureSuccessStatusCode(response);
 
             var json = await response.Content.ReadAsStringAsync();
@@ -144,7 +144,7 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<IEnumerable<AltoraProgram>> GetProgramsAsync()
         {
-            var response = await _httpClient.GetAsync("/programs");
+            var response = await _httpClient.GetAsync("programs");
             await EnsureSuccessStatusCode(response);
 
             var json = await response.Content.ReadAsStringAsync();
@@ -160,7 +160,7 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<IEnumerable<AltoraWorker>> GetWorkersAsync(AltoraWorkerSearchParameters? parameters)
         {
-            var url = "/users";
+            var url = "users";
             var queryParams = new List<string>();
 
             if (!string.IsNullOrWhiteSpace(parameters?.FirstName))
@@ -217,7 +217,7 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<IEnumerable<AltoraCompany>> GetCompaniesAsync()
         {
-            var response = await _httpClient.GetAsync("/companies");
+            var response = await _httpClient.GetAsync("companies");
             await EnsureSuccessStatusCode(response);
 
             var json = await response.Content.ReadAsStringAsync();
@@ -232,7 +232,7 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<int[]> GetCompanyAdminsAsync(string companyId)
         {
-            var response = await _httpClient.GetAsync($"/companies/{companyId}/admins");
+            var response = await _httpClient.GetAsync($"companies/{companyId}/admins");
             await EnsureSuccessStatusCode(response);
 
             var json = await response.Content.ReadAsStringAsync();
@@ -248,7 +248,7 @@ namespace Altora
         public async Task<AltoraRequestResponse> SetCompanyStatusAsync(string companyId, bool active)
         {
             var content = new StringContent((active ? 1 : 0).ToString(), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PutAsync($"/companies/{companyId}/active", content);
+            var response = await _httpClient.PutAsync($"companies/{companyId}/active", content);
             await EnsureSuccessStatusCode(response);
 
             var json = await response.Content.ReadAsStringAsync();
@@ -263,7 +263,7 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<AltoraWorkerDocument?> GetWorkerDocumentAsync(int workerId, int documentId)
         {
-            var url = $"/users/{workerId}/documents?documentid={documentId}";
+            var url = $"users/{workerId}/documents?documentid={documentId}";
             var response = await _httpClient.GetAsync(url);
 
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -285,7 +285,7 @@ namespace Altora
         {
             try
             {
-                var url = $"/users/{workerId}/acknowledgements?acknowledgementid={acknowledgementId}";
+                var url = $"users/{workerId}/acknowledgements?acknowledgementid={acknowledgementId}";
                 var response = await _httpClient.GetAsync(url);
 
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -312,7 +312,7 @@ namespace Altora
         {
             try
             {
-                var url = $"/users/{workerId}/forms?formid={formId}";
+                var url = $"users/{workerId}/forms?formid={formId}";
                 var response = await _httpClient.GetAsync(url);
 
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -337,7 +337,7 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<IEnumerable<AltoraWorkerCourseCompleted>> GetWorkerCoursesAsync(int workerId, int? courseId)
         {
-            var url = $"/users/{workerId}/courses";
+            var url = $"users/{workerId}/courses";
             if (courseId.HasValue)
                 url += $"?courseid={courseId.Value}";
 
@@ -356,7 +356,7 @@ namespace Altora
         /// <exception cref="Exception"></exception>
         public async Task<int[]> GetWorkerProgramsAsync(int workerId)
         {
-            var response = await _httpClient.GetAsync($"/users/{workerId}/programs");
+            var response = await _httpClient.GetAsync($"users/{workerId}/programs");
             await EnsureSuccessStatusCode(response);
 
             var json = await response.Content.ReadAsStringAsync();
@@ -375,7 +375,7 @@ namespace Altora
             var json = JsonSerializer.Serialize(requestBody, _jsonOptions);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PutAsync($"/users/{workerId}/programs", content);
+            var response = await _httpClient.PutAsync($"users/{workerId}/programs", content);
             await EnsureSuccessStatusCode(response);
 
             var responseJson = await response.Content.ReadAsStringAsync();
@@ -391,7 +391,7 @@ namespace Altora
         public async Task<AltoraRequestResponse> SetWorkerStatusAsync(int workerId, bool active)
         {
             var content = new StringContent((active ? 1 : 0).ToString(), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PutAsync($"/users/{workerId}/active", content);
+            var response = await _httpClient.PutAsync($"users/{workerId}/active", content);
             await EnsureSuccessStatusCode(response);
 
             var json = await response.Content.ReadAsStringAsync();
@@ -415,7 +415,7 @@ namespace Altora
             var json = JsonSerializer.Serialize(worker, jsonOptions);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync("/users/", content);
+            var response = await _httpClient.PostAsync("users/", content);
             await EnsureSuccessStatusCode(response);
 
             var responseJson = await response.Content.ReadAsStringAsync();
@@ -434,7 +434,7 @@ namespace Altora
             var json = JsonSerializer.Serialize(worker, jsonOptions);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PatchAsync($"/users/{worker.Id}", content);
+            var response = await _httpClient.PatchAsync($"users/{worker.Id}", content);
             await EnsureSuccessStatusCode(response);
 
             var responseJson = await response.Content.ReadAsStringAsync();
