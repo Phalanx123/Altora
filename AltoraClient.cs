@@ -36,21 +36,12 @@ namespace Altora
             // Configure JSON serializer options
             _jsonOptions = new JsonSerializerOptions
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                 PropertyNameCaseInsensitive = true 
             };
         }
 
-        private void LogCredentials(AltoraOptions options)
-        {
-            _logger.LogInformation(
-                "Default headers added: X-Api-Key=***{ApiKey}, X-Api-Secret=***{ApiSecret}, ClientId=***{ClientId}",
-                SafeTailUtil.SafeTail(options.ApiKey),
-                SafeTailUtil.SafeTail(options.ApiSecret),
-                SafeTailUtil.SafeTail(options.ClientId));
-        }
-
+     
         // Alternative constructor for DI with HttpClientFactory
         public AltoraClient(HttpClient httpClient, IOptions<AltoraOptions> options, ILogger<AltoraClient> logger)
         {
@@ -65,10 +56,17 @@ namespace Altora
             LogCredentials(options.Value);
             _jsonOptions = new JsonSerializerOptions
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                 PropertyNameCaseInsensitive = true 
             };
+        }
+        private void LogCredentials(AltoraOptions options)
+        {
+            _logger.LogInformation(
+                "Default headers added: X-Api-Key=***{ApiKey}, X-Api-Secret=***{ApiSecret}, ClientId=***{ClientId}",
+                SafeTailUtil.SafeTail(options.ApiKey),
+                SafeTailUtil.SafeTail(options.ApiSecret),
+                SafeTailUtil.SafeTail(options.ClientId));
         }
 
         /// <summary>
