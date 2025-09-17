@@ -1,4 +1,0 @@
-C:\Users\AFerreira\source\repos\Phalanx123\Altora\Altora\bin\Release\net8.0\publish\Altora.dll
-C:\Users\AFerreira\source\repos\Phalanx123\Altora\Altora\bin\Release\net8.0\publish\Altora.deps.json
-C:\Users\AFerreira\source\repos\Phalanx123\Altora\Altora\bin\Release\net8.0\publish\Altora.pdb
-C:\Users\AFerreira\source\repos\Phalanx123\Altora\Altora\bin\Release\net8.0\publish\RestSharp.dll
