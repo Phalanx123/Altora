@@ -50,7 +50,9 @@ try
     // Example: fetch workers
     var workers = await client.GetWorkersAsync(new AltoraWorkerSearchParameters
     {
-        FirstName = "John"
+       FirstName = null,
+       LastName = null,
+       Email = null
     });
 
     Console.WriteLine("\nWorkers:");

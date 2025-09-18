@@ -3,9 +3,11 @@ using Altora.Converters;
 
 namespace Altora.Model
 {
+    
     /// <summary>
     /// Altora Worker Acknowledgement
     /// </summary>
+    [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
     public class AltoraWorkerAcknowledgement
     {
         /// <summary>
