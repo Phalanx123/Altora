@@ -52,4 +52,8 @@ public class CreateWorkerRequest
     /// </summary>
     public int? CompanyId { get; set; }
     
+    /// <summary>
+    /// Custom fields to include with the worker.
+    /// </summary>
+    public Dictionary<string, string>? CustomFields { get; set; }
 }
