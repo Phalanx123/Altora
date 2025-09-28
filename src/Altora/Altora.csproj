@@ -7,7 +7,7 @@
     <Configurations>Debug;Release;Staging</Configurations>
     <LangVersion>13</LangVersion>
     <UserSecretsId>594c7c6d-b2bc-4b91-9f84-0927ef9bef5e</UserSecretsId>
-    <Version>1.0.2</Version>
+    <Version>1.0.11</Version>
   </PropertyGroup>
 
   <ItemGroup>

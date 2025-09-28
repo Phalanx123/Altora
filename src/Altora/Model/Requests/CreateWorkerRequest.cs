@@ -38,8 +38,8 @@ public class CreateWorkerRequest
     /// <summary>
     /// Date of Birthday.
     /// </summary>
-    [JsonConverter(typeof(DateTimeConverter))]
-    public DateTime? DateOfBirth { get; set; }
+    [JsonConverter(typeof(DateOnlyConverter))]
+    public DateOnly? DateOfBirth { get; set; }
     
 
     /// <summary>
