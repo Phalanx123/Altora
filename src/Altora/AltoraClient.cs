@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Altora.Configuration;
 using Microsoft.Extensions.Options;
 using System.Text;
+using Altora.Model.Requests;
 using Altora.Utilities;
 using Microsoft.Extensions.Logging;
 
@@ -422,7 +423,7 @@ namespace Altora
         /// </summary>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public async Task<AltoraAddWorkerResponse> AddWorkerAsync(AltoraWorker worker)
+        public async Task<CreateWorkerRequest> AddWorkerAsync(CreateWorkerRequest worker)
         {
             var jsonOptions = new JsonSerializerOptions
             {
@@ -437,7 +438,7 @@ namespace Altora
             await EnsureSuccessStatusCode(response);
 
             var responseJson = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<AltoraAddWorkerResponse>(responseJson, _jsonOptions);
+            var result = JsonSerializer.Deserialize<CreateWorkerRequest>(responseJson, _jsonOptions);
             return result ?? throw new Exception("Failed to deserialize response");
         }
 
