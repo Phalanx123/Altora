@@ -12,6 +12,8 @@ public class CreateWorkerResponse
     /// </summary>
    [JsonPropertyName("status")]
     public required string Status { get; set; } = string.Empty;
+    
+    public bool IsSuccess => Status.Equals("Success", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Username assigned to the newly created worker in Altora.

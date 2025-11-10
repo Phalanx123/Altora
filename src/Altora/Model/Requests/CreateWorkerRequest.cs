@@ -41,6 +41,7 @@ public class CreateWorkerRequest
     /// Date of Birthday.
     /// </summary>
     [JsonConverter(typeof(DateOnlyConverter))]
+    [JsonPropertyName("Dob")]
     public DateOnly? DateOfBirth { get; set; }
     
 

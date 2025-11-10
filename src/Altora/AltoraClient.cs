@@ -428,8 +428,7 @@ namespace Altora
         {
             var jsonOptions = new JsonSerializerOptions
             {
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
             };
 
             var json = JsonSerializer.Serialize(worker, jsonOptions);
@@ -447,8 +446,7 @@ namespace Altora
         {
             var jsonOptions = new JsonSerializerOptions
             {
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
             };
 
             var json = JsonSerializer.Serialize(worker, jsonOptions);
