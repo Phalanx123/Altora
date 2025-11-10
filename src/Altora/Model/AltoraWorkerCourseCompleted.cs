@@ -1,5 +1,5 @@
 ﻿using System.Text.Json.Serialization;
-using IMSWeb.Utils;
+using Altora.Converters;
 
 namespace Altora.Model
 {

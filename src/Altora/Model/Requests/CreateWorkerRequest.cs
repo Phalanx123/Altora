@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Text.Json.Serialization;
+using Altora.Converters;
+using DateOnlyConverter = Altora.Converters.DateOnlyConverter;
 
 namespace Altora.Model.Requests;
 
