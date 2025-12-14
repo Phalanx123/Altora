@@ -1,8 +1,11 @@
-﻿namespace Altora.Model
+﻿using System.Text.Json.Serialization;
+
+namespace Altora.Model
 {
     /// <summary>
     /// Contains Worker Form Items
     /// </summary>
+    [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
     public class AltoraWorkerForm
     {
         /// <summary>

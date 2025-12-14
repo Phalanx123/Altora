@@ -5,6 +5,7 @@ namespace Altora.Model
     /// <summary>
     /// Altora Course
     /// </summary>
+    [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
     public class AltoraCourse
     {
         /// <summary>

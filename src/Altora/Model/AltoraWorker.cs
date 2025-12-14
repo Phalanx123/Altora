@@ -7,7 +7,7 @@ namespace Altora.Model
 
     public class AltoraWorker
     {
-        public int? Id { get; set; }
+        public int Id { get; set; }
 
         public string? Firstname { get; set; }
 

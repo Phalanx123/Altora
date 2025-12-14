@@ -2,6 +2,7 @@
 
 namespace Altora.Model
 {
+    [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
     public class AltoraCompany
     {
         /// <summary>
