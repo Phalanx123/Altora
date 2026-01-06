@@ -442,7 +442,7 @@ namespace Altora
             return result ?? throw new Exception("Failed to deserialize response");
         }
 
-        public async Task<AltoraRequestResponse> UpdateWorker(AltoraWorker worker)
+        public async Task<AltoraRequestResponse> UpdateWorker(UpdateWorkerRequest worker)
         {
             var jsonOptions = new JsonSerializerOptions
             {
