@@ -442,23 +442,28 @@ namespace Altora
             return result ?? throw new Exception("Failed to deserialize response");
         }
 
-        public async Task<AltoraRequestResponse> UpdateWorker(UpdateWorkerRequest worker)
+        /// <summary>
+        /// Updates a user's details (PATCH users/{id}). Only the fields set on <paramref name="worker"/>
+        /// are sent, so anything left null keeps the value Altora already holds.
+        /// </summary>
+        public async Task<AltoraRequestResponse> UpdateWorkerAsync(UpdateWorkerRequest worker,
+            CancellationToken cancellationToken = default)
         {
-            var jsonOptions = new JsonSerializerOptions
-            {
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
-            };
-
-            var json = JsonSerializer.Serialize(worker, jsonOptions);
+            var json = JsonSerializer.Serialize(worker, _jsonOptions);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PatchAsync($"users/{worker.Id}", content);
+            var response = await _httpClient.PatchAsync($"users/{worker.Id}", content, cancellationToken);
             await EnsureSuccessStatusCode(response);
 
-            var responseJson = await response.Content.ReadAsStringAsync();
+            var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
             var result = JsonSerializer.Deserialize<AltoraRequestResponse>(responseJson, _jsonOptions);
             return result ?? throw new Exception("Failed to deserialize response");
         }
+
+        /// <summary>
+        /// Kept for callers built against 1.0.20; the same PATCH as <see cref="UpdateWorkerAsync"/>.
+        /// </summary>
+        public Task<AltoraRequestResponse> UpdateWorker(UpdateWorkerRequest worker) => UpdateWorkerAsync(worker);
 
         private async Task EnsureSuccessStatusCode(HttpResponseMessage response)
         {

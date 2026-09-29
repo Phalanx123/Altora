@@ -1,36 +1,40 @@
-﻿using System.ComponentModel;
 using System.Text.Json.Serialization;
 using Altora.Converters;
-using DateOnlyConverter = Altora.Converters.DateOnlyConverter;
 
 namespace Altora.Model.Requests;
 
 /// <summary>
-/// Request payload for creating a worker in Altora.
+/// Request payload for <c>PATCH /v1/{clientid}/users/{userid}</c>.
+/// Altora only changes the fields that are sent, so every field is optional: leave a field null to keep
+/// the value Altora already holds.
 /// </summary>
 public class UpdateWorkerRequest
 {
-    [JsonPropertyName("Id")]
-    public required int Id { get; set; }
     /// <summary>
-    /// The worker’s first name.
+    /// The Altora user id being updated. It goes into the URL, never into the body.
     /// </summary>
-  [JsonPropertyName("Firstname")]
-    public required string FirstName { get; set; } = string.Empty;
+    [JsonIgnore]
+    public required int Id { get; set; }
 
     /// <summary>
-    /// The worker’s last name.
+    /// The worker's first name.
+    /// </summary>
+    [JsonPropertyName("Firstname")]
+    public string? FirstName { get; set; }
+
+    /// <summary>
+    /// The worker's last name.
     /// </summary>
     [JsonPropertyName("Lastname")]
-    public required string LastName { get; set; } = string.Empty;
+    public string? LastName { get; set; }
 
     /// <summary>
-    /// The worker’s email address.
+    /// The worker's email address.
     /// </summary>
-    public string? Email { get; set; } = string.Empty;
+    public string? Email { get; set; }
 
     /// <summary>
-    /// Optional phone number.
+    /// Phone number.
     /// </summary>
     public string? Phone { get; set; }
 
@@ -38,27 +42,38 @@ public class UpdateWorkerRequest
     /// Mobile phone number.
     /// </summary>
     public string? Mobile { get; set; }
-    
+
     /// <summary>
-    /// Date of Birthday.
+    /// Date of birth.
     /// </summary>
     [JsonConverter(typeof(DateOnlyConverter))]
     [JsonPropertyName("Dob")]
     public DateOnly? DateOfBirth { get; set; }
-    
 
     /// <summary>
-    /// Optional role, trade, or job title.
+    /// Role, trade or job title.
     /// </summary>
     public string? Position { get; set; }
 
     /// <summary>
-    /// Company Id
+    /// Whether the user may still log in. Altora carries it as "1" or "0".
+    /// </summary>
+    [JsonConverter(typeof(NullableJsonBoolConverter))]
+    public bool? Active { get; set; }
+
+    /// <summary>
+    /// The worker's company object id. Used when the Company module is enabled.
     /// </summary>
     public int? CompanyId { get; set; }
-    
+
     /// <summary>
-    /// Custom fields to include with the worker.
+    /// The worker's company name. Used only when the Company module is not enabled.
+    /// </summary>
+    [JsonPropertyName("Company_Name")]
+    public string? CompanyName { get; set; }
+
+    /// <summary>
+    /// Custom fields to write alongside the built-in ones.
     /// </summary>
     public Dictionary<string, string>? CustomFields { get; set; }
 }
