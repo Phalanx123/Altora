@@ -20,7 +20,7 @@ builder.Services.Configure<AltoraOptions>(
     builder.Configuration.GetSection("Altora"));
 
 // Register AltoraClient with DI
-builder.Services.AddTransient<AltoraClient>();
+builder.Services.AddAltoraClient();
 
 // Add logging
 builder.Logging.ClearProviders();

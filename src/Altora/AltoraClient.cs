@@ -6,69 +6,73 @@ using Microsoft.Extensions.Options;
 using System.Text;
 using Altora.Model.Requests;
 using Altora.Model.Responses;
-using Altora.Utilities;
 using Microsoft.Extensions.Logging;
 
 namespace Altora
 {
     public class AltoraClient : IDisposable
     {
+        /// <summary>The Altora API root; the tenant's client id is the next path segment.</summary>
+        public const string ApiRoot = "https://api.userlogin.com.au/v1/";
+
         private readonly HttpClient _httpClient;
-        private readonly JsonSerializerOptions _jsonOptions;
+        private readonly JsonSerializerOptions _jsonOptions = new()
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNameCaseInsensitive = true
+        };
         private readonly ILogger<AltoraClient> _logger;
+        private readonly bool _ownsHttpClient;
         private bool _disposed;
 
+        /// <summary>
+        /// Builds a client over an HttpClient of its own. Every instance opens its own connections, so prefer
+        /// <see cref="AltoraClientServiceCollectionExtensions.AddAltoraClient"/> and inject the client.
+        /// </summary>
+        [Obsolete("Creates an HttpClient per instance. Register the client with services.AddAltoraClient() and inject AltoraClient instead.")]
         public AltoraClient(IOptions<AltoraOptions> options, ILogger<AltoraClient> logger)
+            : this(new HttpClient(), options, logger)
         {
-            _logger = logger;
-            _logger.LogInformation("Initializing AltoraClient for ClientId: {ClientId}", options.Value.ClientId);
-            _httpClient = new HttpClient
-            {
-                BaseAddress = new Uri($"https://api.userlogin.com.au/v1/{options.Value.ClientId}/")
-            };
-
-            logger.LogInformation("BaseAddress set to: {BaseAddress}", _httpClient.BaseAddress);
-
-            // Add default headers
-            _httpClient.DefaultRequestHeaders.Add("X-Api-Key", options.Value.ApiKey);
-            _httpClient.DefaultRequestHeaders.Add("X-Api-Secret", options.Value.ApiSecret);
-            _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-
-            LogCredentials(options.Value);
-            // Configure JSON serializer options
-            _jsonOptions = new JsonSerializerOptions
-            {
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-                PropertyNameCaseInsensitive = true 
-            };
+            _ownsHttpClient = true;
         }
 
-     
-        // Alternative constructor for DI with HttpClientFactory
+        /// <summary>
+        /// Typed client constructor used by IHttpClientFactory. A client already configured by
+        /// <see cref="AltoraClientServiceCollectionExtensions.AddAltoraClient"/> is used as it is.
+        /// </summary>
         public AltoraClient(HttpClient httpClient, IOptions<AltoraOptions> options, ILogger<AltoraClient> logger)
         {
             _httpClient = httpClient;
             _logger = logger;
-            _httpClient.BaseAddress = new Uri($"https://api.userlogin.com.au/v1/{options.Value.ClientId}/");
-            logger.LogInformation("BaseAddress set to: {BaseAddress}", _httpClient.BaseAddress);
-            // Add default headers
-            _httpClient.DefaultRequestHeaders.Add("X-Api-Key", options.Value.ApiKey);
-            _httpClient.DefaultRequestHeaders.Add("X-Api-Secret", options.Value.ApiSecret);
-            _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-            LogCredentials(options.Value);
-            _jsonOptions = new JsonSerializerOptions
-            {
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-                PropertyNameCaseInsensitive = true 
-            };
+
+            // The factory hands every typed client a fresh HttpClient (the handler underneath is pooled), so
+            // this runs once per injection; it stays quiet because a scoped service resolves one per circuit.
+            if (_httpClient.BaseAddress is null)
+                Configure(_httpClient, options.Value);
+
+            _logger.LogDebug("Altora client created for {BaseAddress}", _httpClient.BaseAddress);
         }
-        private void LogCredentials(AltoraOptions options)
+
+        /// <summary>
+        /// Points an HttpClient at the tenant's API and adds the credential headers. Safe to call twice: each
+        /// header is replaced, never added a second time.
+        /// </summary>
+        public static void Configure(HttpClient httpClient, AltoraOptions options)
         {
-            _logger.LogInformation(
-                "Default headers added: X-Api-Key=***{ApiKey}, X-Api-Secret=***{ApiSecret}, ClientId=***{ClientId}",
-                SafeTailUtil.SafeTail(options.ApiKey),
-                SafeTailUtil.SafeTail(options.ApiSecret),
-                SafeTailUtil.SafeTail(options.ClientId));
+            httpClient.BaseAddress = BaseAddressFor(options.ClientId);
+            SetHeader(httpClient, "X-Api-Key", options.ApiKey);
+            SetHeader(httpClient, "X-Api-Secret", options.ApiSecret);
+            SetHeader(httpClient, "Accept", "application/json");
+        }
+
+        /// <summary>The API base address for a tenant's client id.</summary>
+        public static Uri BaseAddressFor(string clientId) => new($"{ApiRoot}{clientId}/");
+
+        private static void SetHeader(HttpClient httpClient, string name, string? value)
+        {
+            httpClient.DefaultRequestHeaders.Remove(name);
+            if (!string.IsNullOrWhiteSpace(value))
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation(name, value);
         }
 
         /// <summary>
@@ -487,7 +491,8 @@ namespace Altora
                 return;
             }
 
-            _httpClient.Dispose();
+            if (_ownsHttpClient)
+                _httpClient.Dispose();
             _disposed = true;
         }
     }
